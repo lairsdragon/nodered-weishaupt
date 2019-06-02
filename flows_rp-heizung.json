@@ -1,1 +1,374 @@
-[{"type":"tab","id":"8438164b.7bc7e8","label":"Sheet 1"},{"id":"eb19c569.14e638","type":"mqtt-broker","broker":"www.weinreich.org","port":"1883","clientid":""},{"id":"209c9967.df6366","type":"inject","name":"28-000006b0dd88","topic":"home/heizung/zuluft","payload":"","payloadType":"date","repeat":"15","crontab":"","once":true,"x":283,"y":137,"z":"8438164b.7bc7e8","wires":[["28cbd5e0.d7342a"]]},{"id":"cf68e7d2.309718","type":"mqtt out","name":"","topic":"","qos":"","retain":"","broker":"eb19c569.14e638","x":1094,"y":185,"z":"8438164b.7bc7e8","wires":[]},{"id":"97a88baa.685778","type":"change","name":"","rules":[{"t":"set","p":"retain","to":"true"}],"x":921,"y":184,"z":"8438164b.7bc7e8","wires":[["cf68e7d2.309718"]]},{"id":"533f6b7f.acc094","type":"debug","name":"","active":true,"console":"false","complete":"true","x":373,"y":701,"z":"8438164b.7bc7e8","wires":[]},{"id":"28cbd5e0.d7342a","type":"1-Wire","identifier":"28-000006b0dd88","name":"zuluft","format":"1","x":463,"y":137,"z":"8438164b.7bc7e8","wires":[["5b58a45.fa4a75c","293afd33.d6c502"]]},{"id":"a8de0ee5.5721f","type":"inject","name":"28-000006b11f9c","topic":"home/heizung/speicher","payload":"","payloadType":"date","repeat":"15","crontab":"","once":true,"x":281,"y":214,"z":"8438164b.7bc7e8","wires":[["1b3b737.fe4c48d"]]},{"id":"1b3b737.fe4c48d","type":"1-Wire","identifier":"28-000006b11f9c","name":"speicher","format":"1","x":466,"y":214,"z":"8438164b.7bc7e8","wires":[["5b58a45.fa4a75c","293afd33.d6c502"]]},{"id":"cbf64ac2.3409b8","type":"inject","name":"28-000006b0da25","topic":"home/heizung/vorlaufhk1","payload":"","payloadType":"date","repeat":"15","crontab":"","once":true,"x":278,"y":282,"z":"8438164b.7bc7e8","wires":[["e82b30ec.17d4d"]]},{"id":"e82b30ec.17d4d","type":"1-Wire","identifier":"28-000006b0da25","name":"vorlauf-hk","format":"1","x":469,"y":282,"z":"8438164b.7bc7e8","wires":[["5b58a45.fa4a75c","293afd33.d6c502"]]},{"id":"bc96faf8.436908","type":"inject","name":"28-000006b0257d","topic":"home/heizung/vorlaufww","payload":"","payloadType":"date","repeat":"15","crontab":"","once":true,"x":274,"y":352,"z":"8438164b.7bc7e8","wires":[["4c538b50.b3ac74"]]},{"id":"4c538b50.b3ac74","type":"1-Wire","identifier":"28-000006b0257d","name":"vorlauf-ww","format":"1","x":472,"y":352,"z":"8438164b.7bc7e8","wires":[["5b58a45.fa4a75c","293afd33.d6c502"]]},{"id":"b18cb162.4e735","type":"inject","name":"28-000006b0d076","topic":"home/heizung/ruecklauf","payload":"","payloadType":"date","repeat":"15","crontab":"","once":true,"x":282,"y":411,"z":"8438164b.7bc7e8","wires":[["a7272fc8.58d8d"]]},{"id":"a7272fc8.58d8d","type":"1-Wire","identifier":"28-000006b0d076","name":"ruecklauf","format":"1","x":466,"y":411,"z":"8438164b.7bc7e8","wires":[["5b58a45.fa4a75c","293afd33.d6c502"]]},{"id":"5b58a45.fa4a75c","type":"function","name":"ToJson","func":"msg.payload = {\"temperature\": msg.payload,\"ts\": Math.floor(Date.now() / 1000)};\n\nreturn msg;","outputs":1,"x":745,"y":183,"z":"8438164b.7bc7e8","wires":[["97a88baa.685778"]]},{"id":"85fa7b26.7a0588","type":"http request","name":"InfluxDB","method":"POST","ret":"txt","url":"http://192.168.1.2:8086/write?u=user&p=password&db=test","x":1098,"y":351,"z":"8438164b.7bc7e8","wires":[[]]},{"id":"293afd33.d6c502","type":"function","name":"Sensor to InfluxDB","func":"var arr = msg.topic.split(\"/\");\n\nmsg.payload = {\n    \"database\": \"test\",\n    \"retentionPolicy\": \"default\",\n    \"points\": [\n        {\n            \"measurement\": \"temp\",\n            \"tags\": {\n                \"location\": arr[0],\n                \"device\": arr[1],\n                \"sensor\": arr[2]\n            },\n            \"fields\": {\n                \"value\": msg.payload\n            }\n        }\n    ]\n};\n\nreturn msg;","outputs":1,"noerr":0,"x":857,"y":402,"z":"8438164b.7bc7e8","wires":[["85fa7b26.7a0588"]]},{"id":"c42c3df7.38cb78","type":"inject","name":"Weishaupt Werte","topic":"home/weishaupt","payload":"{\"prot\":\"coco\",\"telegramm\":[[10,0,1,373,0,0,0,0],[10,0,1,138,0,0,0,0],[10,0,1,2572,0,0,0,0],[10,0,1,2,0,0,0,0],[10,0,1,3101,0,0,0,0],[10,0,1,325,0,0,0,0],[10,0,1,12,0,0,0,0],[10,0,1,14,0,0,0,0]]}","payloadType":"string","repeat":"10","crontab":"","once":false,"x":254,"y":551,"z":"8438164b.7bc7e8","wires":[["10502ac0.f1777d"]]},{"id":"10502ac0.f1777d","type":"http request","name":"Query WCM-COM","method":"POST","ret":"obj","url":"http://192.168.1.20/parameter.json","x":447,"y":551,"z":"8438164b.7bc7e8","wires":[["a58a806e.5a758"]]},{"id":"7c3768ad.668c8","type":"function","name":"Set Header","func":"msg.headers  = {\"Authorization\": \"Digest username=\\\"steve\\\", realm=\\\"Please enter Username and Password!\\\", nonce=\\\"gkK6TuWHewXwZjeKxsMeQtGf\\\", uri=\\\"/parameter.json\\\", response=\\\"e2e7318a667ea3d2cdd502208578bca0\\\"\"} \n\nreturn msg;","outputs":1,"x":392,"y":652,"z":"8438164b.7bc7e8","wires":[[]]},{"id":"a58a806e.5a758","type":"function","name":"Decode WCM-COM","func":"msg.payload = msg.payload.telegramm;\n\nwhinfo = {};\n\n\nwhinfo[\"[10,0,1,2572,0,0].name\"] = \"AussentempAvg\";\nwhinfo[\"[10,0,1,2572,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[10,0,1,2,0,0].name\"] = \"Waermeanforderung\";\nwhinfo[\"[10,0,1,2,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[10,0,1,12,0,0].name\"] = \"Aussentemp\";\nwhinfo[\"[10,0,1,12,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[10,0,1,14,0,0].name\"] = \"Warmwasser\";\nwhinfo[\"[10,0,1,14,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[10,0,1,138,0,0].name\"] = \"Laststellung\";\nwhinfo[\"[10,0,1,138,0,0].type\"] = \"VALUE\"; \n\nwhinfo[\"[10,0,1,373,0,0].name\"] = \"Betriebsphase\";\nwhinfo[\"[10,0,1,373,0,0].type\"] = \"VALUE\"; \n\nwhinfo[\"[10,0,1,3101,0,0].name\"] = \"Vorlauftemp\";\nwhinfo[\"[10,0,1,3101,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[10,0,1,325,0,0].name\"] = \"Abgastemp\";\nwhinfo[\"[10,0,1,325,0,0].type\"] = \"TEMP\"; \n\nfor(var i = 0; i < msg.payload.length; i++) {\n    var obj = msg.payload[i];\n    var idx = \"[\"+obj[0]+\",\"+obj[1]+\",\"+obj[2]+\",\"+obj[3]+\",\"+obj[4]+\",\"+obj[5]+\"]\";\n    \n    var oname = whinfo[idx+\".name\"];\n    var otype = whinfo[idx+\".type\"];\n    \n    if ((oname !== undefined) && (otype !== undefined)) {\n        nmsg = {};\n        nmsg.topic = msg.topic + \"/\" + oname;\n        switch (otype) {\n            case \"TEMP\":\n                var temp;\n                temp = (obj[6] + obj[7]*256) / 10;\n                nmsg.payload = temp;\n                break;\n            case \"VALUE\":\n                var value;\n                value = (obj[6] + obj[7]*256);\n                nmsg.payload = value;\n                break;\n        }\n        // node.warn(nmsg)\n        node.send(nmsg);\n    }\n}\n\nreturn null;","outputs":"1","noerr":0,"x":623,"y":480,"z":"8438164b.7bc7e8","wires":[["293afd33.d6c502","5b58a45.fa4a75c"]]},{"id":"d2711b39.2d8ee8","type":"comment","name":"Unused stuff","info":"","x":232,"y":665,"z":"8438164b.7bc7e8","wires":[]}]
+[
+  {
+    "id": "cf68e7d2.309718",
+    "type": "mqtt out",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "topic": "",
+    "qos": "1",
+    "retain": "true",
+    "broker": "eb19c569.14e638",
+    "x": 1534.0000038146973,
+    "y": 195.00001335144043,
+    "wires": []
+  },
+  {
+    "id": "97a88baa.685778",
+    "type": "change",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "rules": [
+      {
+        "t": "set",
+        "p": "retain",
+        "to": "true"
+      }
+    ],
+    "x": 1366.5,
+    "y": 194.75000476837158,
+    "wires": [
+      [
+        "cf68e7d2.309718",
+        "533f6b7f.acc094"
+      ]
+    ]
+  },
+  {
+    "id": "533f6b7f.acc094",
+    "type": "debug",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "active": false,
+    "console": "false",
+    "complete": "true",
+    "x": 1528.0000762939453,
+    "y": 259.00000762939453,
+    "wires": []
+  },
+  {
+    "id": "5b58a45.fa4a75c",
+    "type": "function",
+    "z": "8438164b.7bc7e8",
+    "name": "ToJson",
+    "func": "msg.payload = {\"temperature\": msg.payload,\"ts\": Math.floor(Date.now() / 1000)};\n\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 1190.4999618530273,
+    "y": 192.50000858306885,
+    "wires": [
+      [
+        "97a88baa.685778"
+      ]
+    ]
+  },
+  {
+    "id": "c42c3df7.38cb78",
+    "type": "inject",
+    "z": "8438164b.7bc7e8",
+    "name": "Weishaupt Werte",
+    "topic": "home/weishaupt",
+    "payload": "{\"prot\":\"coco\",\"telegramm\":[[10,0,1,373,0,0,0,0],[10,0,1,138,0,0,0,0],[10,0,1,2572,0,0,0,0],[10,0,1,2,0,0,0,0],[10,0,1,3101,0,0,0,0],[10,0,1,325,0,0,0,0],[10,0,1,12,0,0,0,0],[10,0,1,14,0,0,0,0],[6,0,1,274,0,0,0,0],[6,0,1,5,0,0,0,0],[6,0,1,8,0,0,0,0]]}",
+    "payloadType": "string",
+    "repeat": "10",
+    "crontab": "",
+    "once": false,
+    "x": 110,
+    "y": 300,
+    "wires": [
+      [
+        "10502ac0.f1777d"
+      ]
+    ]
+  },
+  {
+    "id": "10502ac0.f1777d",
+    "type": "http request",
+    "z": "8438164b.7bc7e8",
+    "name": "Query WCM-COM",
+    "method": "POST",
+    "ret": "obj",
+    "paytoqs": false,
+    "url": "http://192.168.1.20/parameter.json",
+    "tls": "",
+    "proxy": "",
+    "x": 690,
+    "y": 300,
+    "wires": [
+      [
+        "a58a806e.5a758",
+        "76a001ee.896"
+      ]
+    ]
+  },
+  {
+    "id": "a58a806e.5a758",
+    "type": "function",
+    "z": "8438164b.7bc7e8",
+    "name": "Decode WCM-COM",
+    "func": "msg.payload = msg.payload.telegramm;\n\nif (msg.statusCode != 200) {\n    node.log(\"Request failed: \",msg);\n    return null;\n}\n\nwhinfo = {};\n\nwhinfo[\"[10,0,1,2572,0,0].name\"] = \"AussentempAvg\";\nwhinfo[\"[10,0,1,2572,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[10,0,1,2,0,0].name\"] = \"Waermeanforderung\";\nwhinfo[\"[10,0,1,2,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[10,0,1,12,0,0].name\"] = \"Aussentemp\";\nwhinfo[\"[10,0,1,12,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[10,0,1,14,0,0].name\"] = \"Warmwasser\";\nwhinfo[\"[10,0,1,14,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[10,0,1,138,0,0].name\"] = \"Laststellung\";\nwhinfo[\"[10,0,1,138,0,0].type\"] = \"VALUE\"; \n\nwhinfo[\"[10,0,1,373,0,0].name\"] = \"Betriebsphase\";\nwhinfo[\"[10,0,1,373,0,0].type\"] = \"VALUE\"; \n\nwhinfo[\"[10,0,1,3101,0,0].name\"] = \"Vorlauftemp\";\nwhinfo[\"[10,0,1,3101,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[10,0,1,325,0,0].name\"] = \"Abgastemp\";\nwhinfo[\"[10,0,1,325,0,0].type\"] = \"TEMP\"; \n\nwhinfo[\"[6,0,1,274,0,0].name\"] = \"Betriebsart\";\nwhinfo[\"[6,0,1,274,0,0].type\"] = \"VALUE\";\n\nwhinfo[\"[6,0,1,5,0,0].name\"] = \"Raumtemperatur\";\nwhinfo[\"[6,0,1,5,0,0].type\"] = \"TEMP\";\n\nwhinfo[\"[6,0,1,8,0,0].name\"] = \"Absenktemperatur\";\nwhinfo[\"[6,0,1,8,0,0].type\"] = \"TEMP\";\n\nfor(var i = 0; i < msg.payload.length; i++) {\n    var obj = msg.payload[i];\n    var idx = \"[\"+obj[0]+\",\"+obj[1]+\",\"+obj[2]+\",\"+obj[3]+\",\"+obj[4]+\",\"+obj[5]+\"]\";\n    \n    var oname = whinfo[idx+\".name\"];\n    var otype = whinfo[idx+\".type\"];\n    \n    if ((oname !== undefined) && (otype !== undefined)) {\n        nmsg = {};\n        nmsg.topic = msg.topic + \"/\" + oname;\n        switch (otype) {\n            case \"TEMP\":\n                var temp;\n                if (obj[7] < 128) {\n                    temp = (obj[6] + obj[7]*256) / 10;\n                } else {\n                    temp = ((obj[6] + obj[7]*256)-65535) / 10;\n                }\n                nmsg.payload = temp;\n                break;\n            case \"VALUE\":\n                var value;\n                if (obj[7] < 128) {\n                    value = (obj[6] + obj[7]*256);\n                } else {\n                    value = (obj[6] + obj[7]*256)-65535;\n                }\n                nmsg.payload = value;\n                break;\n        }\n        // node.warn(nmsg)\n        node.send(nmsg);\n    }\n}\n\nwcmcom = {};\nwcmcom.status = \"ok\";\nflow.set('wcmcomstatus',wcmcom);\n\nreturn null;",
+    "outputs": "1",
+    "noerr": 0,
+    "x": 920,
+    "y": 300,
+    "wires": [
+      [
+        "5b58a45.fa4a75c",
+        "bd344f74.77dd4"
+      ]
+    ]
+  },
+  {
+    "id": "76a001ee.896",
+    "type": "debug",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "active": false,
+    "console": "false",
+    "complete": "true",
+    "x": 870,
+    "y": 340,
+    "wires": []
+  },
+  {
+    "id": "334c2870.fbb4f8",
+    "type": "mqtt in",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "topic": "home/weishaupt/+/set",
+    "qos": "2",
+    "datatype": "auto",
+    "broker": "eb19c569.14e638",
+    "x": 100,
+    "y": 340,
+    "wires": [
+      [
+        "78e246ab.691978",
+        "6b8afa40.ddd7a4"
+      ]
+    ]
+  },
+  {
+    "id": "78e246ab.691978",
+    "type": "debug",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "active": false,
+    "console": "false",
+    "complete": "true",
+    "x": 270,
+    "y": 340,
+    "wires": []
+  },
+  {
+    "id": "6b8afa40.ddd7a4",
+    "type": "switch",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "property": "topic",
+    "rules": [
+      {
+        "t": "eq",
+        "v": "home/weishaupt/Betriebsart/set"
+      },
+      {
+        "t": "eq",
+        "v": "home/weishaupt/Raumtemperatur/set"
+      }
+    ],
+    "checkall": "true",
+    "outputs": 2,
+    "x": 270,
+    "y": 380,
+    "wires": [
+      [
+        "3fc419bf.b25076"
+      ],
+      [
+        "38eadd99.0282c2"
+      ]
+    ]
+  },
+  {
+    "id": "6566d984.702538",
+    "type": "debug",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "active": false,
+    "console": "false",
+    "complete": "true",
+    "x": 690,
+    "y": 380,
+    "wires": []
+  },
+  {
+    "id": "8bec6043.8cca4",
+    "type": "debug",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "active": false,
+    "console": "false",
+    "complete": "true",
+    "x": 690,
+    "y": 420,
+    "wires": []
+  },
+  {
+    "id": "3fc419bf.b25076",
+    "type": "function",
+    "z": "8438164b.7bc7e8",
+    "name": "Encode Betriebsart",
+    "func": "low = msg.payload % 256; \nhigh = Math.floor(msg.payload / 256);\n\nreq = '{\"prot\":\"coco\",\"telegramm\":[[6,0,2,274,0,0,' + low +','+ high +']]}';\n\nnode.log(req);\n\nmsg.topic = \"home/weishaupt\";\nmsg.payload = req;\n\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 450,
+    "y": 380,
+    "wires": [
+      [
+        "6566d984.702538",
+        "10502ac0.f1777d"
+      ]
+    ]
+  },
+  {
+    "id": "38eadd99.0282c2",
+    "type": "function",
+    "z": "8438164b.7bc7e8",
+    "name": "Encode Raumtemperatur",
+    "func": "\nif ((msg.payload < 10) || (msg.payload > 35)) {\n    node.log(\"Raumtemperatur ausserhalb 10..35°C\");\n    return null;\n}\n\ntemp = msg.payload * 10;\nlow = temp % 256; \nhigh = Math.floor(temp / 256);\n\nreq = '{\"prot\":\"coco\",\"telegramm\":[[6,0,2,5,0,0,' + low +','+ high +']]}';\n\nnode.log(req);\n\nmsg.topic = \"home/weishaupt\";\nmsg.payload = req;\n\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 470,
+    "y": 420,
+    "wires": [
+      [
+        "8bec6043.8cca4",
+        "10502ac0.f1777d"
+      ]
+    ]
+  },
+  {
+    "id": "bd344f74.77dd4",
+    "type": "debug",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "active": false,
+    "console": "false",
+    "complete": "false",
+    "x": 1172.0139045715332,
+    "y": 310.7584276199341,
+    "wires": []
+  },
+  {
+    "id": "69876d2.49af094",
+    "type": "http in",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "url": "/status/",
+    "method": "get",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 130,
+    "y": 640,
+    "wires": [
+      [
+        "d891656a.0c4cf"
+      ]
+    ]
+  },
+  {
+    "id": "e7b9f30b.e31cd",
+    "type": "http response",
+    "z": "8438164b.7bc7e8",
+    "name": "Status",
+    "statusCode": "200",
+    "headers": {},
+    "x": 510,
+    "y": 640,
+    "wires": []
+  },
+  {
+    "id": "5cd20e45.03efa",
+    "type": "catch",
+    "z": "8438164b.7bc7e8",
+    "name": "Catch Query Errors",
+    "scope": [
+      "10502ac0.f1777d"
+    ],
+    "uncaught": false,
+    "x": 150,
+    "y": 600,
+    "wires": [
+      [
+        "e008dd09.3f2fa8"
+      ]
+    ]
+  },
+  {
+    "id": "3c286a5d.df9cce",
+    "type": "debug",
+    "z": "8438164b.7bc7e8",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 510,
+    "y": 600,
+    "wires": []
+  },
+  {
+    "id": "e008dd09.3f2fa8",
+    "type": "function",
+    "z": "8438164b.7bc7e8",
+    "name": "Set Flow Status",
+    "func": "wcmcom = {};\n\nwcmcom.status = msg.error.message;\n\nflow.set('wcmcomstatus',wcmcom);\n\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 340,
+    "y": 600,
+    "wires": [
+      [
+        "3c286a5d.df9cce"
+      ]
+    ]
+  },
+  {
+    "id": "d891656a.0c4cf",
+    "type": "function",
+    "z": "8438164b.7bc7e8",
+    "name": "Return flow Status",
+    "func": "wcmcom = flow.get('wcmcomstatus') || {};\n\nmsg.payload = wcmcom;\n\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 350,
+    "y": 640,
+    "wires": [
+      [
+        "e7b9f30b.e31cd"
+      ]
+    ]
+  },
+  {
+    "id": "eb19c569.14e638",
+    "type": "mqtt-broker",
+    "z": "",
+    "name": "www.weinreich.org",
+    "broker": "www.weinreich.org",
+    "port": "1883",
+    "clientid": "",
+    "usetls": false,
+    "compatmode": true,
+    "keepalive": "15",
+    "cleansession": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthPayload": "",
+    "closeTopic": "",
+    "closePayload": "",
+    "willTopic": "",
+    "willQos": "0",
+    "willPayload": ""
+  }
+]
