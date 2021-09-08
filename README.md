@@ -52,3 +52,41 @@ whinfo["[6,0,1,270,0,0].name"] = "Steilheit"
 
 
 
+http://192.168.50.111/parameter.json
+{"prot":"coco","telegramm":[
+[10,0,1,81,0,0,0,0],   = Flamme
+[10,0,1,1497,0,0,0,0], = Gasventil 1
+[10,0,1,1498,0,0,0,0], = Gasventil 1
+[10,0,1,466,0,0,0,0],  = Pumpe
+[10,0,1,82,0,0,0,0],   = Heizung
+[10,0,1,83,0,0,0,0],   = Warmwasser
+[10,0,1,1,0,0,0,0],    = Fehler
+[10,0,1,373,0,0,0,0]   = Betriebsphase
+]}
+
+,[10,0,1,81,0,0,0,0],[10,0,1,1497,0,0,0,0],[10,0,1,1498,0,0,0,0],[10,0,1,466,0,0,0,0],[10,0,1,82,0,0,0,0],[10,0,1,83,0,0,0,0],[10,0,1,1,0,0,0,0],[10,0,1,373,0,0,0,0]
+
+
+whinfo["[10,0,1,81,0,0,0,0].name"]   = "Flamme";
+whinfo["[10,0,1,81,0,0,0,0].value"]  = "VALUE";
+
+whinfo["[10,0,1,1497,0,0,0,0].name"]  = "Gasventil1";
+whinfo["[10,0,1,1497,0,0,0,0].value"] = "VALUE";
+
+whinfo["[10,0,1,1498,0,0,0,0].name"]  = "Gasventil2";
+whinfo["[10,0,1,1498,0,0,0,0].value"] = "VALUE";
+
+whinfo["[10,0,1,466,0,0,0,0].name"]   = "Pumpe";
+whinfo["[10,0,1,466,0,0,0,0].value"]  = "VALUE";
+
+whinfo["[10,0,1,82,0,0,0,0].name"]    = "Heizung";
+whinfo["[10,0,1,82,0,0,0,0].value"]   = "VALUE";
+
+whinfo["[10,0,1,83,0,0,0,0].name"]    = "Warmwasser";
+whinfo["[10,0,1,83,0,0,0,0].value"]   = "VALUE";
+
+whinfo["[10,0,1,1,0,0,0,0].name"]    = "Fehler";
+whinfo["[10,0,1,1,0,0,0,0].value"]   = "VALUE";
+
+whinfo["[10,0,1,373,0,0,0,0].name"]  = "Betriebsphase";
+whinfo["[10,0,1,373,0,0,0,0].value"] = "VALUE";
